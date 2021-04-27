@@ -4,27 +4,46 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.view.View;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
     RecyclerView recyclerView;
-    RecyclerView.Adapter ProgramAdapter;
     RecyclerView.LayoutManager layoutManager;
-    String [] recipeName = {"Tokneneng (Filipino Street Food)", "Purple Yam Jam", "Lumpia Mollica"};
-    String [] prices = {"1500", "2000","3000"};
-    int [] dishimage = {R.drawable.circle_cropped, R.drawable.purpleyam, R.drawable.lumpiamolica};
-
+    DishInfoAdapter.RecyclerViewClickListener listener;
+    ArrayList<DishInfo> dishInfoList;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        setOnClickListener();
         super.onCreate(savedInstanceState);
         getSupportActionBar().hide();
         setContentView(R.layout.activity_main);
+        DatabaseAccess databaseAccess = DatabaseAccess.getInstance(this);
+        databaseAccess.open();
+        dishInfoList = databaseAccess.getImageAndName();
         recyclerView = findViewById(R.id.rv);
         recyclerView.setHasFixedSize(true);
-        layoutManager = new LinearLayoutManager(this, RecyclerView.HORIZONTAL, false);
+        layoutManager = new LinearLayoutManager(this,LinearLayoutManager.HORIZONTAL, false);
         recyclerView.setLayoutManager(layoutManager);
-        ProgramAdapter = new ProgramAdapter(this,recipeName,prices,dishimage);
-        recyclerView.setAdapter(ProgramAdapter);
+        DishInfoAdapter dishInfoAdapter = new DishInfoAdapter(this, dishInfoList,recyclerView,listener);
+        recyclerView.setAdapter(dishInfoAdapter);
+        databaseAccess.close();
 
+    }
+
+    private void setOnClickListener() {
+        listener = new DishInfoAdapter.RecyclerViewClickListener() {
+            @Override
+            public void onClick(View v, int position) {
+                Intent intent = new Intent(getApplicationContext(), MoreInfo.class);
+                intent.putExtra("foodname", dishInfoList.get(position).getDishName());
+                startActivity(intent);
+
+            }
+        };
     }
 }
